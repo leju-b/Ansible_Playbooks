@@ -1,0 +1,64 @@
+---
+- name: Install and configure software packages on multiple servers
+  hosts: all
+  become: yes
+  tasks:
+  
+    - name: Update the package list
+      apt:
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+      # This task is only for Debian-based systems (like Ubuntu)
+
+    - name: Install necessary software packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - nginx
+        - git
+        - curl
+      when: ansible_os_family == 'Debian'
+      # This installs packages on Debian-based systems
+    
+    - name: Install necessary software packages (for RedHat/CentOS)
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - httpd
+        - git
+        - curl
+      when: ansible_os_family == 'RedHat'
+      # This installs packages on RedHat-based systems (like CentOS)
+
+    - name: Ensure nginx is running (for Debian-based systems)
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Ensure httpd is running (for RedHat-based systems)
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+      when: ansible_os_family == 'RedHat'
+
+    - name: Copy configuration file
+      copy:
+        src: /path/to/local/config/file
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+      when: ansible_os_family == 'Debian'
+      # This task copies a local config file to the server for Debian systems
+
+    - name: Restart nginx to apply the new configuration
+      service:
+        name: nginx
+        state: restarted
+      when: ansible_os_family == 'Debian'
+
