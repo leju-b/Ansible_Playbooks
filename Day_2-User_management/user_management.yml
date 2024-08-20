@@ -1,0 +1,30 @@
+---
+
+- name: User management playbook
+  hosts: servers
+  become: yes
+
+  tasks:
+    - name: user exists?
+      ansible.buildin.user:
+        name: "{{ user_name }}"
+        password: "{{ user_password | password_hash('sha512')}}"
+        shell: /bin/bash  
+        state: present
+
+    - name: user part of the group
+      ansible.buildin.user:
+        name: "{{ user_name }}"
+        groups: sudo
+        append: yes
+
+
+    - name: permissions on users home directory
+      ansible.buildin.file:
+        path: "/home/{{ user_name }}"
+        state: directory
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: '0755'
+
+
